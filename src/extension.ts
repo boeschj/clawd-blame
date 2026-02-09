@@ -1,26 +1,60 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+import { processSessionsForProject } from "./commands/process-sessions.js";
+import { EXTENSION_COMMANDS, MAX_DISPLAYED_ERRORS } from "./constants.js";
+import { ClaudeContextHoverProvider } from "./providers/hover-provider.js";
+
 export function activate(context: vscode.ExtensionContext) {
+  const hoverProvider = vscode.languages.registerHoverProvider(
+    { scheme: "file" },
+    new ClaudeContextHoverProvider(context),
+  );
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "clawd-blame" is now active!');
+  const processCommand = vscode.commands.registerCommand(
+    EXTENSION_COMMANDS.ProcessSessions,
+    () => runProcessSessions(context),
+  );
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('clawd-blame.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from clawd-blame!');
-	});
-
-	context.subscriptions.push(disposable);
+  context.subscriptions.push(hoverProvider, processCommand);
 }
 
-// This method is called when your extension is deactivated
+async function runProcessSessions(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    vscode.window.showErrorMessage(
+      "Clawd Blame: No workspace folder is open.",
+    );
+    return;
+  }
+
+  const projectPath = workspaceFolder.uri.fsPath;
+
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: "Clawd Blame: Processing sessions...",
+      cancellable: false,
+    },
+    async () => {
+      const result = await processSessionsForProject(projectPath, context);
+
+      if (result.errors.length > 0) {
+        const errorSummary = result.errors
+          .slice(0, MAX_DISPLAYED_ERRORS)
+          .join("; ");
+        vscode.window.showWarningMessage(
+          `Clawd Blame: Processed ${result.sessionsProcessed} sessions with ${result.errors.length} errors. ${errorSummary}`,
+        );
+        return;
+      }
+
+      vscode.window.showInformationMessage(
+        `Clawd Blame: Processed ${result.sessionsProcessed} sessions. Found ${result.editsFound} edits, linked ${result.commitsLinked} commits.`,
+      );
+    },
+  );
+}
+
 export function deactivate() {}

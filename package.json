@@ -4,20 +4,32 @@
   "description": "git blame for AI coding. See why Claude Code wrote each line. VS Code / Cursor extension",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.109.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "clawd-blame.helloWorld",
-        "title": "Hello World"
+        "command": "clawd-blame.processSessions",
+        "title": "Clawd Blame: Process Sessions for Current Project"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Clawd Blame",
+      "properties": {
+        "clawdBlame.claudeConfigPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to Claude Code config directory (defaults to ~/.claude)"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
@@ -34,7 +46,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.109.0",
+    "@types/vscode": "^1.85.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "typescript-eslint": "^8.54.0",
