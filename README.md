@@ -2,6 +2,13 @@
 
 This is the README for your extension "clawd-blame". After writing up a brief description, we recommend including the following sections.
 
+## Getting started
+To run the extension in development, run `pnpm compile` and then click the "Run Extension (no watch)" vscode launch configuration, which should start the extension in a blank window. 
+
+NOTE: Cursor is incredibly stubborn about session persistence, so you'll need to use CMD + o to open a new workspace.
+
+Then, in your target repository (must have previous claude code / etc. chats) press CMD + Shift + P and type `clawd-blame: Process Sessions For Current Project` to begin processing. Once complete, you should see an IDE notification.
+
 ## Features
 
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
